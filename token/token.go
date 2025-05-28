@@ -1,20 +1,17 @@
 package token
 
 type TokenType string
-type Token struct {
-	Type    TokenType
-	Literal string
-}
 
-const ( //All of our tokens
+const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 
-	// IDENT Identifiers + literals
-	IDENT = "IDENT" // add, foobar, x, y, ...
-	INT   = "INT"   // 1343456
+	// Identifiers + literals
+	IDENT  = "IDENT"  // add, foobar, x, y, ...
+	INT    = "INT"    // 1343456
+	STRING = "STRING" // "foobar"
 
-	// ASSIGN Operators
+	// Operators
 	ASSIGN   = "="
 	PLUS     = "+"
 	MINUS    = "-"
@@ -25,16 +22,22 @@ const ( //All of our tokens
 	LT = "<"
 	GT = ">"
 
-	// COMMA Delimiters
+	EQ     = "=="
+	NOT_EQ = "!="
+
+	// Delimiters
 	COMMA     = ","
 	SEMICOLON = ";"
+	COLON     = ":"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
+	LPAREN   = "("
+	RPAREN   = ")"
+	LBRACE   = "{"
+	RBRACE   = "}"
+	LBRACKET = "["
+	RBRACKET = "]"
 
-	// FUNCTION Keywords
+	// Keywords
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 	TRUE     = "TRUE"
@@ -42,9 +45,19 @@ const ( //All of our tokens
 	IF       = "IF"
 	ELSE     = "ELSE"
 	RETURN   = "RETURN"
-	EQ       = "=="
-	NOT_EQ   = "!="
 )
+
+// -----------------------------------------------------------------------------
+// Declaración de tipo: Token
+// -----------------------------------------------------------------------------
+// Token modela una estructura
+// dentro del AST o del sistema de objetos. Consulte los campos y sus
+// métodos asociados para más detalles.
+
+type Token struct {
+	Type    TokenType
+	Literal string
+}
 
 var keywords = map[string]TokenType{
 	"fn":     FUNCTION,

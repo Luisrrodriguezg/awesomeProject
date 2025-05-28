@@ -1,8 +1,8 @@
+// lexer.go
+// Transforma el código fuente en bruto en un flujo de Tokens mediante un escáner manual sencillo.
 package lexer
 
-import (
-	"awesomeProject/token"
-)
+import "awesomeProject/token"
 
 type Lexer struct {
 	input        string
@@ -11,29 +11,17 @@ type Lexer struct {
 	ch           byte // current char under examination
 }
 
-// New Constructor
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.readChar()
 	return l
 }
 
-// Leer la posición actual
-func (l *Lexer) readChar() { //It just for the out of bounds
-	if l.readPosition >= len(l.input) { //Over the input
-		l.ch = 0
-	} else { //Otherwise simply add the value to the current char
-		l.ch = l.input[l.readPosition]
-	}
-	//Then update the position
-	l.position = l.readPosition
-	l.readPosition += 1
-}
-
-// Identifica y asigna el token
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
+
 	l.skipWhitespace()
+
 	switch l.ch {
 	case '=':
 		if l.peekChar() == '=' {
@@ -67,16 +55,25 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.GT, l.ch)
 	case ';':
 		tok = newToken(token.SEMICOLON, l.ch)
+	case ':':
+		tok = newToken(token.COLON, l.ch)
 	case ',':
 		tok = newToken(token.COMMA, l.ch)
-	case '(':
-		tok = newToken(token.LPAREN, l.ch)
-	case ')':
-		tok = newToken(token.RPAREN, l.ch)
 	case '{':
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
+	case '(':
+		tok = newToken(token.LPAREN, l.ch)
+	case ')':
+		tok = newToken(token.RPAREN, l.ch)
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
+	case '[':
+		tok = newToken(token.LBRACKET, l.ch)
+	case ']':
+		tok = newToken(token.RBRACKET, l.ch)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -93,28 +90,27 @@ func (l *Lexer) NextToken() token.Token {
 			tok = newToken(token.ILLEGAL, l.ch)
 		}
 	}
+
 	l.readChar()
 	return tok
 }
 
-// Crea el token
-func newToken(tokenType token.TokenType, ch byte) token.Token {
-	return token.Token{Type: tokenType, Literal: string(ch)}
-}
-
-// Lee el char actual
-func (l *Lexer) readIdentifier() string {
-	position := l.position
-	for isLetter(l.ch) {
+func (l *Lexer) skipWhitespace() {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		l.readChar()
 	}
-	return l.input[position:l.position]
-}
-func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
 }
 
-// Simply look for the next thing to read without incrementing the count for the reader
+func (l *Lexer) readChar() {
+	if l.readPosition >= len(l.input) {
+		l.ch = 0
+	} else {
+		l.ch = l.input[l.readPosition]
+	}
+	l.position = l.readPosition
+	l.readPosition += 1
+}
+
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
 		return 0
@@ -123,14 +119,14 @@ func (l *Lexer) peekChar() byte {
 	}
 }
 
-// Saltar espacios blancos
-func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+func (l *Lexer) readIdentifier() string {
+	position := l.position
+	for isLetter(l.ch) {
 		l.readChar()
 	}
+	return l.input[position:l.position]
 }
 
-// Lee si es número
 func (l *Lexer) readNumber() string {
 	position := l.position
 	for isDigit(l.ch) {
@@ -139,7 +135,25 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.position]
 }
 
-// Confirma el dígito
+func (l *Lexer) readString() string {
+	position := l.position + 1
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+	return l.input[position:l.position]
+}
+
+func isLetter(ch byte) bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
+}
+
+func newToken(tokenType token.TokenType, ch byte) token.Token {
+	return token.Token{Type: tokenType, Literal: string(ch)}
 }
